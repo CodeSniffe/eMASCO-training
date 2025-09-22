@@ -1,16 +1,19 @@
-const express = require('express');
+const express = require("express");
+const swaggerUi = require("swagger-ui-express");
+const YAML = require("yamljs");
+
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
+
+const swaggerDocument = YAML.load("./swagger.yaml");
 
 // Middleware
 app.use(express.json());
 
-// Routes
-app.get('/', (req, res) => {
-  res.send('Hello, Express!');
-});
+// Serve Swagger UI
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-// Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Server is running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
+  console.log(`📚 Swagger docs at http://localhost:${PORT}/api-docs`);
 });
