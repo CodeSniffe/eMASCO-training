@@ -13,6 +13,10 @@ app.use(express.json());
 // Serve Swagger UI
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
+// Routes
+const userRoutes = require("./routes/users");
+app.use("/api/users", userRoutes);
+
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
   console.log(`📚 Swagger docs at http://localhost:${PORT}/api-docs`);
