@@ -68,6 +68,12 @@ exports.createUser = (req, res) => {
 
 exports.deleteUser = (req, res) => {
   const id = Number(req.params.id);
+  const targetUser = users.find((u) => u.id === id);
+
+  if (!targetUser) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
   users = users.filter((u) => u.id !== id);
-  res.status(204).send();
+  res.status(200).json({ message: `${targetUser.name} has been successfully deleted.` });
 };
