@@ -576,7 +576,315 @@ app.use("/api/books", bookRoutes);
 
 ## 📘 Swagger Docs
 
-Update **swagger.yaml** with full schemas (see the provided complete version in original guide).  
+Update **swagger.yaml** with full schemas
+```
+openapi: 3.0.0
+info:
+  title: Complex Express API Demo
+  version: 1.0.0
+  description: |
+    A more advanced demo Express API with multiple endpoints, request validation,
+    and full Swagger documentation.
+
+servers:
+  - url: http://localhost:3000
+
+tags:
+  - name: Authentication
+    description: Login and authentication
+  - name: Users
+    description: User management
+  - name: Books
+    description: Library of books
+
+paths:
+  /login:
+    post:
+      summary: User login
+      description: Authenticates a user and returns a JWT token.
+      tags:
+        - Authentication
+      requestBody:
+        description: Login credentials
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: admin
+                password:
+                  type: string
+                  example: password123
+      responses:
+        '200':
+          description: Successfully authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '401':
+          description: Invalid username or password
+
+  /api/users:
+    get:
+      tags: [Users]
+      summary: Get all users
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: Limit the number of users returned
+      responses:
+        "200":
+          description: A list of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+    post:
+      tags: [Users]
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserInput"
+      responses:
+        "201":
+          description: Created user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Invalid input
+
+  /api/users/{id}:
+    get:
+      tags: [Users]
+      summary: Get a user by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: The user ID
+      responses:
+        "200":
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          description: User not found
+    delete:
+      tags: [Users]
+      summary: Delete a user by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: The user ID
+      responses:
+        "204":
+          description: User deleted
+        "404":
+          description: User not found
+
+  /api/books:
+    get:
+      tags: [Books]
+      summary: Get all books
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: A list of books
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Book"
+    post:
+      tags: [Books]
+      summary: Add a new book
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Book to add
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookInput"
+      responses:
+        "201":
+          description: Book created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Book"
+
+  /api/books/{id}:
+    get:
+      tags: [Books]
+      summary: Get a book by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the book to retrieve
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The requested book
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Book"
+        "404":
+          description: Book not found
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Alice
+        email:
+          type: string
+          format: email
+          example: alice@example.com
+        role:
+          type: string
+          enum: [admin, user, guest]
+          example: user
+        isActive:
+          type: boolean
+          example: true
+        hobbies:
+          type: array
+          items:
+            type: string
+          example: ["reading", "gaming"]
+        address:
+          type: object
+          properties:
+            street:
+              type: string
+              example: "123 Main St"
+            city:
+              type: string
+              example: "Springfield"
+            zip:
+              type: string
+              example: "12345"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2023-09-01T12:00:00Z"
+
+    UserInput:
+      type: object
+      required: [name, email, role]
+      properties:
+        name:
+          type: string
+          example: Charlie
+        email:
+          type: string
+          format: email
+          example: charlie@example.com
+        role:
+          type: string
+          enum: [admin, user, guest]
+          example: user
+        isActive:
+          type: boolean
+          example: true
+        hobbies:
+          type: array
+          items:
+            type: string
+        address:
+          type: object
+          properties:
+            street:
+              type: string
+              example: "456 Park Ave"
+            city:
+              type: string
+              example: "Metropolis"
+            zip:
+              type: string
+              example: "54321"
+    
+    Book:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "12345"
+        title:
+          type: string
+          example: "The Great Gatsby"
+        author:
+          type: string
+          example: "F. Scott Fitzgerald"
+        publishedYear:
+          type: integer
+          example: 1925
+
+    BookInput:
+      type: object
+      required:
+        - title
+        - author
+      properties:
+        title:
+          type: string
+        author:
+          type: string
+        publishedYear:
+          type: integer
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
+```
+
 It covers:
 
 - 🔑 `/login` → authentication
