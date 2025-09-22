@@ -16,6 +16,10 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 // Routes
 const userRoutes = require("./routes/users");
 app.use("/api/users", userRoutes);
+const authRoutes = require("./routes/auth");
+app.use("/login", authRoutes);
+const bookRoutes = require("./routes/books");
+app.use("/api/books", bookRoutes);
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);

@@ -10,10 +10,51 @@ servers:
   - url: http://localhost:3000
 
 tags:
+  - name: Authentication
+    description: Login and authentication
   - name: Users
     description: User management
+  - name: Books
+    description: Library of books
 
 paths:
+  /login:
+    post:
+      summary: User login
+      description: Authenticates a user and returns a JWT token.
+      tags:
+        - Authentication
+      requestBody:
+        description: Login credentials
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: admin
+                password:
+                  type: string
+                  example: password123
+      responses:
+        '200':
+          description: Successfully authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '401':
+          description: Invalid username or password
+
   /api/users:
     get:
       tags: [Users]
@@ -87,6 +128,64 @@ paths:
           description: User deleted
         "404":
           description: User not found
+
+  /api/books:
+    get:
+      tags: [Books]
+      summary: Get all books
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: A list of books
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Book"
+    post:
+      tags: [Books]
+      summary: Add a new book
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Book to add
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookInput"
+      responses:
+        "201":
+          description: Book created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Book"
+
+  /api/books/{id}:
+    get:
+      tags: [Books]
+      summary: Get a book by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the book to retrieve
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The requested book
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Book"
+        "404":
+          description: Book not found
 
 components:
   schemas:
@@ -166,3 +265,41 @@ components:
             zip:
               type: string
               example: "54321"
+    
+    Book:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "12345"
+        title:
+          type: string
+          example: "The Great Gatsby"
+        author:
+          type: string
+          example: "F. Scott Fitzgerald"
+        publishedYear:
+          type: integer
+          example: 1925
+
+    BookInput:
+      type: object
+      required:
+        - title
+        - author
+      properties:
+        title:
+          type: string
+        author:
+          type: string
+        publishedYear:
+          type: integer
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
